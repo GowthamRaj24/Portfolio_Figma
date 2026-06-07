@@ -303,7 +303,6 @@ function CardImage({
   return (
     <>
       {images.map((src, i) => (
-        // eslint-disable-next-line @next/next/no-img-element
         <motion.img
           key={src}
           src={src}
@@ -604,7 +603,7 @@ function CardVisual({
               <span className="absolute -bottom-1 left-0 h-px w-0 bg-accent transition-all duration-500 group-hover:w-full" />
             </span>
             <span className="shrink-0 font-sans text-xs tracking-[0.1em] text-muted">
-              // {project.date}
+              {`// ${project.date}`}
             </span>
           </div>
         </div>

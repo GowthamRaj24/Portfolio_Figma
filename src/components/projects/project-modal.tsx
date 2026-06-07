@@ -76,7 +76,6 @@ function Gallery({
         style={{ aspectRatio: ar }}
       >
         {images.map((src, i) => (
-          // eslint-disable-next-line @next/next/no-img-element
           <motion.img
             key={src}
             src={src}
