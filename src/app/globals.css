@@ -1,0 +1,307 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ------------------------------------------------------------------ */
+/* Design tokens                                                       */
+/* ------------------------------------------------------------------ */
+:root {
+  /* Light theme */
+  --background: #ece9e3;
+  --background-soft: #e3e0d8;
+  --foreground: #15161a;
+  --muted: #5f626b;
+  --line: #d2cfc7;
+  --card: #ffffff;
+
+  /* Warm cinematic cream used for the hero headline */
+  --cream: #4a4035;
+  --accent: #b8895a;
+
+  --radius: 999px;
+
+  --font-serif: var(--font-inria), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display-src), ui-sans-serif, system-ui, sans-serif;
+}
+
+.dark {
+  /* Dark cinematic theme (default) - a WARM near-black (not pure #000) so the
+     dark sections read as the warm "night" after the hero's sunset, keeping the
+     whole site in one graded world. */
+  --background: #0a0806;
+  --background-soft: #0e0b08;
+  --foreground: #ece7dd;
+  --muted: #9a978f;
+  --line: rgba(236, 231, 221, 0.14);
+  --card: #14100b;
+
+  /* Warm cream + amber, matching the reference */
+  --cream: #ece3d2;
+  --accent: #d9b98c;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-background-soft: var(--background-soft);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-card: var(--card);
+  --color-cream: var(--cream);
+  --color-accent: var(--accent);
+
+  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+}
+
+/* ------------------------------------------------------------------ */
+/* Base                                                                */
+/* ------------------------------------------------------------------ */
+* {
+  border-color: var(--line);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* `clip` (not `hidden`) prevents horizontal scroll WITHOUT turning body into
+     a scroll container - which would break `position: sticky` descendants like
+     the About birds canvas. */
+  overflow-x: clip;
+}
+
+/* Lock scroll while the preloader is active */
+body.is-loading {
+  overflow: hidden;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+/* ------------------------------------------------------------------ */
+/* Utilities                                                           */
+/* ------------------------------------------------------------------ */
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Fluid display type for the hero headline.
+   Bold, wide geometric sans (Montserrat) to match the reference. */
+.display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: 0.03em;
+  font-size: clamp(2.4rem, 9vw, 8.5rem);
+  color: var(--cream);
+}
+
+/* Performance: promote animated layers to their own GPU compositor layer */
+.gpu {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Minimal scrim: keep the 4K video crisp and bright; only feather the very
+   top so the navbar stays legible. The bottom is handled separately. */
+.hero-edge-scrim {
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.45) 0%,
+    rgba(0, 0, 0, 0) 20%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+/* Dusk grade: the sunset melts DOWN through its own warm embers and settles,
+   smoothly, into the warm night-black - one continuous warm gradient (no colour
+   band), so About reads as "later the same evening" without a visible seam. */
+.hero-bottom-fade {
+  height: 50vh;
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 8, 6, 0) 0%,
+    rgba(48, 22, 16, 0.22) 36%,
+    rgba(24, 14, 10, 0.64) 70%,
+    #0a0806 100%
+  );
+}
+
+/* Readability for text placed directly over bright video frames */
+.text-cinematic {
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45), 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+/* ------------------------------------------------------------------ */
+/* Cinematic atmosphere - unifies every section as one graded film     */
+/* ------------------------------------------------------------------ */
+
+/* Animated film grain. A tiled SVG noise, gently jittered so it shimmers like
+   real film stock. Overlaid site-wide at low opacity. */
+.film-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  animation: grain-shift 0.7s steps(3) infinite;
+}
+
+@keyframes grain-shift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  33% {
+    transform: translate3d(-3%, 2%, 0);
+  }
+  66% {
+    transform: translate3d(2%, -2%, 0);
+  }
+  100% {
+    transform: translate3d(-1%, 1%, 0);
+  }
+}
+
+/* Cinematic vignette - darkens the frame edges like a film lens. */
+.vignette {
+  background: radial-gradient(
+    125% 115% at 50% 38%,
+    transparent 52%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+}
+
+/* Drifting warm ember mote (the sunset's afterglow, alive in the dark). */
+.ember {
+  background: radial-gradient(
+    circle,
+    rgba(255, 198, 128, 0.55) 0%,
+    rgba(255, 170, 92, 0.25) 40%,
+    rgba(255, 150, 80, 0) 70%
+  );
+  animation-name: ember-rise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes ember-rise {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.8);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.9;
+  }
+  85% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate3d(var(--ember-drift, 2vw), -78vh, 0) scale(1.1);
+    opacity: 0;
+  }
+}
+
+/* Night-sky star field (About -> Projects). Two layers pulse out of phase so the
+   sky shimmers gently as a whole - no per-star animation, so it stays 60fps. */
+.star-layer-a {
+  animation: star-pulse-a 5s ease-in-out infinite;
+}
+.star-layer-b {
+  animation: star-pulse-b 7s ease-in-out infinite 1.4s;
+}
+@keyframes star-pulse-a {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes star-pulse-b {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.82;
+  }
+}
+
+/* Shooting stars - a sparse, continuous meteor shower for the space sections.
+   All share one radiant angle (like a real shower), with long white tails that
+   streak down-left, staggered + looping so a few are always falling. */
+@keyframes sky-meteor {
+  0% {
+    transform: rotate(140deg) translateX(0);
+    opacity: 0;
+  }
+  3% {
+    opacity: 1;
+  }
+  14% {
+    opacity: 1;
+  }
+  22% {
+    transform: rotate(140deg) translateX(640px);
+    opacity: 0;
+  }
+  /* Long rest so, site-wide, only the occasional meteor streaks by. */
+  100% {
+    transform: rotate(140deg) translateX(640px);
+    opacity: 0;
+  }
+}
+.sky-meteor {
+  position: absolute;
+  height: 1.5px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0),
+    rgba(236, 240, 255, 0.95)
+  );
+  filter: drop-shadow(0 0 4px rgba(200, 220, 255, 0.75));
+  opacity: 0;
+  transform: rotate(140deg);
+  animation-name: sky-meteor;
+  animation-timing-function: ease-in;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .film-grain {
+    animation: none;
+  }
+  .ember {
+    animation: none;
+    opacity: 0;
+  }
+  .star-layer-a,
+  .star-layer-b {
+    animation: none;
+  }
+  .sky-meteor {
+    animation: none;
+    opacity: 0;
+  }
+}
