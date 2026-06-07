@@ -51,6 +51,13 @@ const CAMERA_Z = 12;
 const FOV = 45;
 const HALF_FOV_TAN = Math.tan((FOV * Math.PI) / 180 / 2);
 
+// Load entrance: each bird slides in from OFF-SCREEN LEFT, staggered, easing to
+// its scroll-driven start position - so the flock sweeps in smoothly on load
+// instead of popping into place.
+const ENTRANCE_FROM = 16; // world units off-screen to the left
+const ENTRANCE_DURATION = 2; // seconds for a bird to fully slide in
+const ENTRANCE_STAGGER = 0.22; // seconds between successive birds
+
 // SETTLE (journey progress at which the flock has fully arrived) is shared with
 // the wrapper via ./constants. AFTER it, each bird's vertical position is LOCKED
 // TO THE PAGE (see useFrame): it rises with the scroll so it scrolls up and away
@@ -138,12 +145,14 @@ const FLOCK: BirdConfig[] = [
 
 function Bird({
   config,
+  index,
   scrollRef,
   pastScrollRef,
   pointerRef,
   material,
 }: {
   config: BirdConfig;
+  index: number;
   scrollRef: RefObject<number>;
   pastScrollRef: RefObject<number>;
   pointerRef: RefObject<{ x: number; y: number }>;
@@ -215,10 +224,20 @@ function Bird({
     const visibleWorldH = 2 * (CAMERA_Z - config.z) * HALF_FOV_TAN;
     const pageRise = viewportsPast * visibleWorldH;
 
+    // Entrance: slide in from off-screen LEFT once on load (staggered per bird),
+    // easing to 0 so the flock sweeps smoothly into its start position.
+    const entranceT = THREE.MathUtils.clamp(
+      (t - index * ENTRANCE_STAGGER) / ENTRANCE_DURATION,
+      0,
+      1,
+    );
+    const entranceOffset = -Math.pow(1 - entranceT, 3) * ENTRANCE_FROM;
+
     const x =
       THREE.MathUtils.lerp(config.xStart, config.xEnd, eased) +
       Math.sin(t * config.sway[1] + config.phase) * config.sway[0] +
-      pointer.x * (config.z > 0 ? 0.7 : 0.4);
+      pointer.x * (config.z > 0 ? 0.7 : 0.4) +
+      entranceOffset;
     const y =
       THREE.MathUtils.lerp(config.yStart, config.yEnd, eased) +
       Math.cos(t * config.bob[1] + config.phase) * config.bob[0] +
@@ -281,10 +300,11 @@ function Flock({
 
   return (
     <>
-      {FLOCK.map((config) => (
+      {FLOCK.map((config, i) => (
         <Bird
           key={config.url}
           config={config}
+          index={i}
           scrollRef={scrollRef}
           pastScrollRef={pastScrollRef}
           pointerRef={pointerRef}

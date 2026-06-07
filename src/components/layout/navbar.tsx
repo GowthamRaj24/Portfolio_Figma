@@ -25,7 +25,7 @@ export function Navbar() {
         {/* Logo / mark */}
         <a href="#home" className="flex flex-col leading-none">
           <span className="font-serif text-lg font-bold tracking-[0.1em] text-cream">
-            Gowtham's
+            Gowtham&rsquo;s
           </span>
           <span className="mt-1 text-[10px] uppercase tracking-[0.3em] text-muted">
             Portfolio
