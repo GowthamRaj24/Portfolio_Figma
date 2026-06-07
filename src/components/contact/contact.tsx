@@ -23,15 +23,34 @@ const EMAIL = "mgowthamraj9491@gmail.com";
 const PHONE = "+91 9491226619";
 const RESUME = "/resume.pdf";
 
-const SOCIALS: { label: string; href: string; icon: ReactNode }[] = [
+// Same pre-filled subject + greeting as the hero "Contact" button, so emailing
+// from anywhere on the site opens a ready-to-edit message (not a blank compose).
+const EMAIL_MAILTO = `mailto:${EMAIL}?subject=${encodeURIComponent(
+  "Let's connect — from your portfolio",
+)}&body=${encodeURIComponent(
+  "Hi Gowtham,\n\nI came across your portfolio and would love to connect about ",
+)}`;
+
+const SOCIALS: {
+  label: string;
+  href: string;
+  /** When set, the Contact-section button copies this value instead of navigating. */
+  copy?: string;
+  icon: ReactNode;
+}[] = [
   { label: "GitHub", href: "https://github.com/GowthamRaj24", icon: <GitHubIcon /> },
   {
     label: "LinkedIn",
     href: "https://www.linkedin.com/in/gowtham-raj-1061a5272/",
     icon: <LinkedInIcon />,
   },
-  { label: "Email", href: `mailto:${EMAIL}`, icon: <MailIcon /> },
-  { label: "Phone", href: `tel:${PHONE.replace(/\s+/g, "")}`, icon: <PhoneIcon /> },
+  { label: "Email", href: EMAIL_MAILTO, icon: <MailIcon /> },
+  {
+    label: "Phone",
+    href: `tel:${PHONE.replace(/\s+/g, "")}`,
+    copy: PHONE,
+    icon: <PhoneIcon />,
+  },
 ];
 
 const NAV = [
@@ -66,6 +85,7 @@ const rise: Variants = {
 
 export function Contact() {
   const [copied, setCopied] = useState(false);
+  const [copiedLabel, setCopiedLabel] = useState<string | null>(null);
 
   const copyEmail = async () => {
     try {
@@ -74,6 +94,19 @@ export function Contact() {
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
       /* clipboard unavailable - the mailto link still works */
+    }
+  };
+
+  const copyToClipboard = async (value: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopiedLabel(label);
+      window.setTimeout(
+        () => setCopiedLabel((c) => (c === label ? null : c)),
+        1800,
+      );
+    } catch {
+      /* clipboard unavailable */
     }
   };
 
@@ -142,7 +175,7 @@ export function Contact() {
         {/* Email - the hero of the section. */}
         <motion.div variants={rise} className="mt-12 flex flex-col items-center gap-4">
           <a
-            href={`mailto:${EMAIL}`}
+            href={EMAIL_MAILTO}
             className="font-display text-[clamp(1.4rem,4.5vw,2.8rem)] font-bold tracking-tight text-cream underline decoration-accent/40 decoration-2 underline-offset-[10px] transition-colors duration-300 hover:text-accent hover:decoration-accent"
           >
             {EMAIL}
@@ -161,22 +194,52 @@ export function Contact() {
           variants={rise}
           className="mt-12 flex flex-wrap items-center justify-center gap-3 sm:gap-4"
         >
-          {SOCIALS.map((s) => (
-            <a
-              key={s.label}
-              href={s.href}
-              target={s.href.startsWith("http") ? "_blank" : undefined}
-              rel={s.href.startsWith("http") ? "noreferrer" : undefined}
-              className="group flex items-center gap-2.5 rounded-2xl border border-cream/12 bg-cream/[0.03] px-5 py-3 transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:bg-cream/[0.06]"
-            >
+          {SOCIALS.map((s) => {
+            const itemClass =
+              "group flex items-center gap-2.5 rounded-2xl border border-cream/12 bg-cream/[0.03] px-5 py-3 transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:bg-cream/[0.06]";
+            const iconSpan = (
               <span className="text-cream/70 transition-colors duration-300 group-hover:text-accent [&>svg]:h-5 [&>svg]:w-5">
                 {s.icon}
               </span>
-              <span className="font-sans text-sm text-cream/80 transition-colors duration-300 group-hover:text-cream">
-                {s.label}
-              </span>
-            </a>
-          ))}
+            );
+
+            // Phone (and any `copy` entry): copy to clipboard instead of a
+            // dead `tel:` link, with a transient "Copied" confirmation.
+            if (s.copy) {
+              const value = s.copy;
+              const done = copiedLabel === s.label;
+              return (
+                <button
+                  key={s.label}
+                  type="button"
+                  onClick={() => copyToClipboard(value, s.label)}
+                  aria-label={`Copy ${s.label.toLowerCase()} number`}
+                  title={value}
+                  className={`${itemClass} cursor-pointer`}
+                >
+                  {iconSpan}
+                  <span className="font-sans text-sm text-cream/80 transition-colors duration-300 group-hover:text-cream">
+                    {done ? "Copied \u2713" : s.label}
+                  </span>
+                </button>
+              );
+            }
+
+            return (
+              <a
+                key={s.label}
+                href={s.href}
+                target={s.href.startsWith("http") ? "_blank" : undefined}
+                rel={s.href.startsWith("http") ? "noreferrer" : undefined}
+                className={itemClass}
+              >
+                {iconSpan}
+                <span className="font-sans text-sm text-cream/80 transition-colors duration-300 group-hover:text-cream">
+                  {s.label}
+                </span>
+              </a>
+            );
+          })}
         </motion.div>
 
         {/* Availability + résumé. */}
@@ -263,7 +326,7 @@ export function Footer() {
               href="#home"
               className="font-display text-2xl font-bold tracking-tight text-cream"
             >
-              GRM
+              Gowtham
             </a>
             <p className="mt-2 max-w-xs font-sans text-sm leading-relaxed text-cream/55">
               Gowtham Raju Manda — Software Engineer crafting intelligent,

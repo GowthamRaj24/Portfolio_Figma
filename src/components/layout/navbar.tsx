@@ -24,8 +24,8 @@ export function Navbar() {
       <nav className="mx-auto flex max-w-[110rem] items-center justify-between px-6 py-6 sm:px-10">
         {/* Logo / mark */}
         <a href="#home" className="flex flex-col leading-none">
-          <span className="font-serif text-lg font-bold tracking-[0.2em] text-cream">
-            GRM
+          <span className="font-serif text-lg font-bold tracking-[0.1em] text-cream">
+            Gowtham's
           </span>
           <span className="mt-1 text-[10px] uppercase tracking-[0.3em] text-muted">
             Portfolio
@@ -45,16 +45,6 @@ export function Navbar() {
             </li>
           ))}
         </ul>
-
-        {/* Right cluster */}
-        <div className="flex items-center gap-3">
-          <a
-            href="#contact"
-            className="hidden rounded-full border border-line px-5 py-2 text-xs uppercase tracking-[0.18em] text-cream backdrop-blur-md transition-colors duration-300 hover:border-accent hover:text-accent sm:inline-flex"
-          >
-            Contact
-          </a>
-        </div>
       </nav>
     </motion.header>
   );

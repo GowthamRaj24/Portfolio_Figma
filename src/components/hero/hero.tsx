@@ -1,12 +1,73 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  useScroll,
+  useTransform,
+  useReducedMotion,
+} from "framer-motion";
 import { Navbar } from "@/components/layout/navbar";
 import { PillButton } from "@/components/ui/pill-button";
 import { HeroVideo } from "./hero-video";
 import { Headline } from "./headline";
 import { useReveal } from "@/components/loader/load-context";
+
+const RESUME_URL = "/resume.pdf";
+const CONTACT_EMAIL = "mgowthamraj9491@gmail.com";
+// Pre-filled email so "Contact" opens the visitor's mail client (Outlook, etc.)
+// addressed to me, with a ready-to-edit subject + greeting.
+const CONTACT_MAILTO = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
+  "Let's connect — from your portfolio",
+)}&body=${encodeURIComponent(
+  "Hi Gowtham,\n\nI came across your portfolio and would love to connect about ",
+)}`;
+
+const ROLES = [
+  "Backend & AI Systems Engineer",
+  "Distributed Systems",
+  "Real-Time Applications",
+  "RAG Systems",
+  "Full-Stack Development",
+];
+
+/** Hero subtitle that rotates through the role + specialties one at a time
+ *  (slide-up). Falls back to a static primary role under reduced motion. */
+function RotatingRole() {
+  const reduceMotion = useReducedMotion();
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (reduceMotion) return;
+    const id = window.setInterval(
+      () => setIndex((p) => (p + 1) % ROLES.length),
+      2800,
+    );
+    return () => window.clearInterval(id);
+  }, [reduceMotion]);
+
+  if (reduceMotion) {
+    return <span className="whitespace-nowrap">{ROLES[0]}</span>;
+  }
+
+  return (
+    <span className="block h-[1.5em] overflow-hidden">
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={index}
+          className="block whitespace-nowrap leading-[1.5em]"
+          initial={{ y: "100%", opacity: 0 }}
+          animate={{ y: "0%", opacity: 1 }}
+          exit={{ y: "-100%", opacity: 0 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        >
+          {ROLES[index]}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+}
 
 export function Hero() {
   const { revealed } = useReveal();
@@ -57,14 +118,14 @@ export function Hero() {
         style={{ y: bottomY, opacity: bottomFade }}
       >
         <div className="flex flex-col gap-5">
-          <motion.p
-            className="text-cinematic font-sans text-sm uppercase tracking-[0.35em] text-cream/90 sm:text-base"
+          <motion.div
+            className="text-cinematic font-sans text-xs uppercase tracking-[0.16em] text-cream/90 sm:text-sm"
             initial={{ opacity: 0, y: 16 }}
             animate={revealed ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.5 }}
           >
-            Software Engineer
-          </motion.p>
+            <RotatingRole />
+          </motion.div>
 
           {/* Resume + Contact buttons, bottom-left */}
           <motion.div
@@ -73,10 +134,15 @@ export function Hero() {
             animate={revealed ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.65 }}
           >
-            <PillButton href="#resume" variant="solid">
+            <PillButton
+              href={RESUME_URL}
+              variant="solid"
+              target="_blank"
+              rel="noreferrer"
+            >
               Resume
             </PillButton>
-            <PillButton href="#contact" variant="outline">
+            <PillButton href={CONTACT_MAILTO} variant="outline">
               Contact
             </PillButton>
           </motion.div>
