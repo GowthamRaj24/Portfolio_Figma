@@ -65,6 +65,9 @@
 
 html {
   scroll-behavior: smooth;
+  /* Offset in-page anchor jumps so each section's top clears the fixed navbar
+     (matters most on mobile, where the menu links jump between sections). */
+  scroll-padding-top: 5.5rem;
 }
 
 body {

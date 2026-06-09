@@ -95,7 +95,7 @@ function Gallery({
               type="button"
               aria-label="Previous screenshot"
               onClick={() => go(-1)}
-              className="absolute left-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-cream/15 bg-black/40 text-cream/80 opacity-0 backdrop-blur-md transition-all duration-300 hover:border-accent/50 hover:text-accent group-hover/gal:opacity-100 [&>svg]:h-4 [&>svg]:w-4"
+              className="absolute left-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-cream/15 bg-black/40 text-cream/80 opacity-100 backdrop-blur-md transition-all duration-300 hover:border-accent/50 hover:text-accent lg:opacity-0 lg:group-hover/gal:opacity-100 [&>svg]:h-4 [&>svg]:w-4"
             >
               <Chevron left />
             </button>
@@ -103,7 +103,7 @@ function Gallery({
               type="button"
               aria-label="Next screenshot"
               onClick={() => go(1)}
-              className="absolute right-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-cream/15 bg-black/40 text-cream/80 opacity-0 backdrop-blur-md transition-all duration-300 hover:border-accent/50 hover:text-accent group-hover/gal:opacity-100 [&>svg]:h-4 [&>svg]:w-4"
+              className="absolute right-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-cream/15 bg-black/40 text-cream/80 opacity-100 backdrop-blur-md transition-all duration-300 hover:border-accent/50 hover:text-accent lg:opacity-0 lg:group-hover/gal:opacity-100 [&>svg]:h-4 [&>svg]:w-4"
             >
               <Chevron />
             </button>
@@ -207,7 +207,7 @@ export function ProjectModal({
     <AnimatePresence>
       {project && (
         <motion.div
-          className="fixed inset-0 z-[200] flex items-start justify-center overflow-y-auto p-4 sm:items-center sm:p-6"
+          className="fixed inset-0 z-[200] flex justify-center overflow-hidden sm:items-center sm:p-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -232,7 +232,7 @@ export function ProjectModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97, y: 14 }}
             transition={{ type: "spring", stiffness: 230, damping: 28 }}
-            className="relative z-10 my-auto flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-cream/15"
+            className="relative z-10 flex h-[100dvh] w-full min-w-0 max-w-5xl flex-col overflow-hidden rounded-none border border-cream/15 sm:h-auto sm:max-h-[90dvh] sm:rounded-2xl"
             style={{
               background:
                 "linear-gradient(155deg, rgba(24,19,13,0.97), rgba(10,8,6,0.985))",
@@ -269,11 +269,13 @@ export function ProjectModal({
               <CloseIcon />
             </button>
 
-            {/* Scrollable body */}
-            <div className="relative overflow-y-auto overscroll-contain">
-              <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:p-10">
+            {/* Scrollable body — min-h-0 + flex-1 bound it to the panel's
+                max-h so it actually scrolls (esp. on mobile where the gallery
+                and details stack into one tall column). */}
+            <div className="relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain [-webkit-overflow-scrolling:touch]">
+              <div className="grid w-full min-w-0 gap-7 p-5 sm:gap-8 sm:p-8 lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:p-10">
                 {/* Left: gallery (sticks while the details scroll on desktop) */}
-                <div className="self-start lg:sticky lg:top-0">
+                <div className="min-w-0 self-start lg:sticky lg:top-0">
                   {project.images && project.images.length > 0 ? (
                     <Gallery
                       images={project.images}

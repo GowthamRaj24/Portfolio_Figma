@@ -680,6 +680,15 @@ function CardVisual({
               )}
             </div>
 
+            {/* Touch devices have no hover, so the "Explore" overlay below never
+                shows — give mobile a persistent tap affordance instead. */}
+            <div className="pointer-events-none absolute bottom-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-full border border-cream/15 bg-black/40 px-2.5 py-1 backdrop-blur-md lg:hidden">
+              <span className="font-sans text-[0.58rem] uppercase tracking-[0.18em] text-cream/85">
+                View details
+              </span>
+              <span className="text-cream/85">&rarr;</span>
+            </div>
+
             {/* Hover overlay: a peek at the stack + an explore affordance. */}
             <div className="pointer-events-none absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/80 via-black/15 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100">
               <div className="m-4 flex translate-y-2 flex-col gap-2.5 transition-transform duration-500 group-hover:translate-y-0">

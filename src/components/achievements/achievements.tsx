@@ -40,7 +40,7 @@ type Achievement = {
     exam: string;
     paper: string;
     air: string;
-    stats: { label: string; value: string; sub?: string }[];
+    stats?: { label: string; value: string; sub?: string }[];
   };
 };
 
@@ -97,10 +97,6 @@ const ACHIEVEMENTS: Achievement[] = [
       exam: "GATE 2024",
       paper: "Data Science & AI (DA)",
       air: "4559",
-      stats: [
-        { label: "GATE Score", value: "404", sub: "/ 1000" },
-        { label: "Marks", value: "41", sub: "/ 100" },
-      ],
     },
   },
   {
@@ -738,27 +734,29 @@ function ScoreCard({
           </p>
         </div>
 
-        {/* Stat tiles. */}
-        <div className="relative mt-5 grid grid-cols-2 gap-3">
-          {sc.stats.map((s) => (
-            <div
-              key={s.label}
-              className="rounded-xl border border-cream/10 bg-black/20 px-3.5 py-3"
-            >
-              <p className="font-sans text-[0.56rem] uppercase tracking-[0.16em] text-cream/50">
-                {s.label}
-              </p>
-              <p className="mt-1 font-display text-xl font-bold text-cream">
-                {s.value}
-                {s.sub && (
-                  <span className="ml-1 font-sans text-xs font-normal text-cream/45">
-                    {s.sub}
-                  </span>
-                )}
-              </p>
-            </div>
-          ))}
-        </div>
+        {/* Stat tiles (only when present). */}
+        {sc.stats && sc.stats.length > 0 && (
+          <div className="relative mt-5 grid grid-cols-2 gap-3">
+            {sc.stats.map((s) => (
+              <div
+                key={s.label}
+                className="rounded-xl border border-cream/10 bg-black/20 px-3.5 py-3"
+              >
+                <p className="font-sans text-[0.56rem] uppercase tracking-[0.16em] text-cream/50">
+                  {s.label}
+                </p>
+                <p className="mt-1 font-display text-xl font-bold text-cream">
+                  {s.value}
+                  {s.sub && (
+                    <span className="ml-1 font-sans text-xs font-normal text-cream/45">
+                      {s.sub}
+                    </span>
+                  )}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Paper footer. */}
         <div className="relative mt-4 flex items-center gap-2 border-t border-cream/10 pt-3">
