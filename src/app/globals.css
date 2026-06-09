@@ -87,6 +87,18 @@ body.is-loading {
   overflow: hidden;
 }
 
+/* While a modal / lightbox is open the page sits behind a blurred scrim. Pause
+   the decorative animations so the backdrop-filter isn't forced to re-composite
+   a live 60fps scene every frame — this is what makes the modal feel glitchy.
+   With the scene held static, the blur is cached and the modal is buttery. */
+body.modal-open .film-grain,
+body.modal-open .ember,
+body.modal-open .star-layer-a,
+body.modal-open .star-layer-b,
+body.modal-open .sky-meteor {
+  animation-play-state: paused !important;
+}
+
 ::selection {
   background: color-mix(in srgb, var(--accent) 28%, transparent);
 }

@@ -779,11 +779,22 @@ function Lightbox({ src, alt, onClose }: { src: string; alt: string; onClose: ()
       if (e.key === "Escape") onClose();
     };
     document.addEventListener("keydown", onKey);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+
+    // Lock scroll without a layout jump + pause the decorative animations so
+    // the blurred backdrop stays cheap (see globals.css `.modal-open`).
+    const { body } = document;
+    const scrollbarW = window.innerWidth - document.documentElement.clientWidth;
+    const prevOverflow = body.style.overflow;
+    const prevPaddingRight = body.style.paddingRight;
+    body.style.overflow = "hidden";
+    if (scrollbarW > 0) body.style.paddingRight = `${scrollbarW}px`;
+    body.classList.add("modal-open");
+
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prevOverflow;
+      body.style.overflow = prevOverflow;
+      body.style.paddingRight = prevPaddingRight;
+      body.classList.remove("modal-open");
     };
   }, [onClose]);
 

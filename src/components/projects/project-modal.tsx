@@ -190,12 +190,25 @@ export function ProjectModal({
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+
+    // Lock scroll WITHOUT a layout jump: compensate for the now-hidden
+    // scrollbar's width. Also flag the body so the page's decorative
+    // animations pause (see globals.css) — otherwise the blurred backdrop
+    // re-composites a live 60fps scene every frame and stutters.
+    const { body } = document;
+    const scrollbarW = window.innerWidth - document.documentElement.clientWidth;
+    const prevOverflow = body.style.overflow;
+    const prevPaddingRight = body.style.paddingRight;
+    body.style.overflow = "hidden";
+    if (scrollbarW > 0) body.style.paddingRight = `${scrollbarW}px`;
+    body.classList.add("modal-open");
     closeRef.current?.focus();
+
     return () => {
       window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prevOverflow;
+      body.style.overflow = prevOverflow;
+      body.style.paddingRight = prevPaddingRight;
+      body.classList.remove("modal-open");
     };
   }, [project, onClose]);
 
