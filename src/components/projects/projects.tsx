@@ -58,6 +58,9 @@ export type Project = {
   top: number; // vh
   width: string;
   ar: number; // frame aspect ratio (w/h) - matched to the screenshots
+  /** How screenshots sit in the card frame. "contain" (default) shows the whole
+   *  image (can letterbox); "cover" fills the frame (can crop the edges). */
+  fit?: "contain" | "cover";
   /** Deep-dive content for the pop-up. */
   detail?: ProjectDetail;
 };
@@ -113,14 +116,66 @@ const PROJECTS: Project[] = [
   },
   {
     id: "02",
+    name: "Deltek Premier League",
+    date: "05.2026",
+    href: "#",
+    images: [
+      "/project6/01.jpeg",
+      "/project6/02.jpeg",
+      "/project6/03.jpeg",
+      "/project6/04.jpeg",
+    ],
+    tone: "from-[#1a0e0a] to-[#0c0604]",
+    left: "52%",
+    top: 30,
+    width: "44%",
+    ar: 1.96,
+    detail: {
+      tagline:
+        "Fantasy gameplay + team chat + a live broadcast — an internal real-time IPL fantasy & engagement platform.",
+      year: "2026",
+      status: "Live",
+      overview:
+        "DPL is a full-stack, real-time fantasy cricket and office-engagement platform built for the IPL 2026 season. Employees form teams, join a league, and compete across five concurrent gameplay loops — predictions, Fantasy XI, AI-generated live bids, head-to-head challenges, and a match-day Live Arena with a real-time scoreboard, fantasy leaderboard, chat, WebRTC voice and an AI commentator. It stitches a fantasy game, a chat platform, broadcast-style graphics and an AI commentator into one product running an organization-wide tournament across 70+ matches.",
+      role: "Designed and shipped end-to-end — real-time backend, distributed workers, AI integration, WebRTC, infrastructure and frontend.",
+      features: [
+        "Room-based Socket.IO real-time layer (match / team / voice rooms) with JWT-verified handshakes broadcasting score, fantasy, chat, bid and presence events across thousands of concurrent rooms.",
+        "Stateful WorkerRegistry spawning a per-match score worker with adaptive state-driven polling (5-min pre-match → 30-sec live → auto-stop), cutting external CricAPI calls ~80% while preserving sub-30-second score latency.",
+        "Dual-LLM AI (Anthropic Claude + Google Gemini): an in-chat @AI cricket assistant with web search, live bid-question generation, fuzzy prediction settlement, challenge adjudication, and per-function token logging for cost observability.",
+        "Type-safe data layer over PostgreSQL with Drizzle ORM (21 tables) and an immutable points ledger — a UNIQUE (team, match, type) constraint makes settlement idempotent so retries never double-credit.",
+        "WebRTC mesh voice chat (up to 5 per team) with STUN + TURN fallback, automatic ICE restart and speaker detection, plus live chat, flying emoji, presence and AI hype commentary.",
+        "Containerized with multi-stage Docker and deployed on Kubernetes (Deployment / Service / Ingress with WebSocket upgrade, ConfigMap / Secret), with liveness/readiness probes and a graceful SIGTERM shutdown that drains workers and the PG pool.",
+      ],
+      stack: [
+        "React 18",
+        "TypeScript",
+        "Express",
+        "Drizzle ORM",
+        "PostgreSQL",
+        "Socket.IO",
+        "WebRTC",
+        "Claude + Gemini",
+        "Docker",
+        "Kubernetes",
+      ],
+      metrics: [
+        { value: "5", label: "Gameplay loops" },
+        { value: "21", label: "DB tables" },
+        { value: "~80%", label: "Fewer API calls" },
+        { value: "70+", label: "IPL matches" },
+      ],
+    },
+  },
+  {
+    id: "03",
     name: "G-Buddy",
     date: "09.2024",
     href: "https://g-buddy.vercel.app/",
     images: ["/project2/01.png", "/project2/02.png", "/project2/03.png"],
     tone: "from-[#0a1f1c] to-[#04100e]",
-    left: "52%",
-    top: 30,
-    width: "44%",
+    left: "3%",
+    top: 86,
+    width: "31%",
     ar: 1.89,
     detail: {
       tagline:
@@ -150,54 +205,17 @@ const PROJECTS: Project[] = [
     },
   },
   {
-    id: "03",
-    name: "BlogX",
-    date: "06.2024",
-    href: "https://blogx1.netlify.app/",
-    images: ["/project3/01.png"],
-    tone: "from-[#171428] to-[#0a0814]",
-    left: "3%",
-    top: 86,
-    width: "31%",
-    ar: 1.9,
-    detail: {
-      tagline:
-        "Express your ideas — a fast, secure, edge-deployed blogging platform.",
-      year: "2024",
-      status: "Live",
-      overview:
-        "BlogX is a scalable blogging platform where writing meets the edge. It pairs JWT-based authentication with a backend built to handle large datasets, a rich writing experience, and edge deployment on Cloudflare Workers for low-latency, globally distributed request handling. Pagination and lazy loading keep rendering smooth even under concurrent usage.",
-      role: "Full-stack build — secure JWT auth, a scalable Prisma/PostgreSQL data layer and an edge-deployed Cloudflare Workers backend.",
-      features: [
-        "Secure blogging platform with JWT authentication that keeps accounts safe.",
-        "Scalable backend built to handle large datasets reliably.",
-        "Rich text editor with cloud storage — content stays secure and accessible anywhere.",
-        "Performance tuned with pagination and lazy loading for smooth rendering under concurrent usage.",
-        "Backend deployed on Cloudflare Workers for low-latency, edge-based, scalable request handling.",
-      ],
-      stack: ["React.js", "PostgreSQL", "Prisma", "Cloudflare Workers", "JWT"],
-      metrics: [
-        { value: "Edge", label: "Deployed" },
-        { value: "JWT", label: "Secure auth" },
-        { value: "Prisma", label: "+ PostgreSQL" },
-        { value: "Lazy", label: "+ pagination" },
-      ],
-      links: [
-        { label: "Visit site", href: "https://blogx1.netlify.app/", kind: "primary" },
-      ],
-    },
-  },
-  {
     id: "04",
     name: "Human Pose Estimation",
     date: "03.2024",
     href: "#",
-    images: ["/project4/unnamed.png"],
+    images: ["/project4/image.png", "/project4/unnamed.png"],
     tone: "from-[#1a1206] to-[#0c0803]",
     left: "35.5%",
     top: 104,
     width: "31%",
     ar: 1.9,
+    fit: "cover",
     detail: {
       tagline:
         "Pose-driven activity recognition for surveillance — reading human actions from skeletons, not raw pixels.",
@@ -285,9 +303,11 @@ const PROJECTS: Project[] = [
 function CardImage({
   images,
   alt,
+  fit = "contain",
 }: {
   images: string[];
   alt: string;
+  fit?: "contain" | "cover";
 }) {
   const [active, setActive] = useState(0);
 
@@ -312,7 +332,10 @@ function CardImage({
           initial={false}
           animate={{ opacity: i === active ? 1 : 0 }}
           transition={{ duration: 0.9, ease: "easeInOut" }}
-          className="absolute inset-0 h-full w-full object-contain"
+          className={cn(
+            "absolute inset-0 h-full w-full",
+            fit === "cover" ? "object-cover" : "object-contain",
+          )}
         />
       ))}
 
@@ -349,6 +372,86 @@ function Placeholder({ tone, name }: { tone: string; name: string }) {
         <span className="h-px w-12 bg-accent/50" />
       </div>
     </div>
+  );
+}
+
+/**
+ * On hover, a celestial "targeting reticle" blooms AROUND the card: a slowly
+ * turning dashed instrument ring with cardinal tick-nodes, a bright radar-sweep
+ * arc scanning round, and a counter-orbiting glow dot. It sits behind the card
+ * (circumscribing it) and tilts with it in 3D. Only the hovered card animates.
+ */
+function FocusRing({ hovered, reduce }: { hovered: boolean; reduce: boolean }) {
+  const orbit = (dur: number, dir: 1 | -1) => ({
+    animate: reduce || !hovered ? undefined : { rotate: 360 * dir },
+    transition: reduce
+      ? undefined
+      : { duration: dur, ease: "linear" as const, repeat: Infinity },
+  });
+
+  return (
+    <motion.div
+      aria-hidden
+      className="pointer-events-none absolute left-1/2 top-1/2 -z-[1] aspect-square w-[120%]"
+      initial={false}
+      animate={{
+        x: "-50%",
+        y: "-50%",
+        opacity: hovered ? 1 : 0,
+        scale: hovered ? 1 : 0.85,
+      }}
+      transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+    >
+      {/* Slow instrument ring: faint rings, a dashed ring, cardinal nodes. */}
+      <motion.svg
+        viewBox="0 0 100 100"
+        className="absolute inset-0 h-full w-full overflow-visible"
+        {...orbit(26, 1)}
+      >
+        <circle cx="50" cy="50" r="49" fill="none" stroke="rgba(236,231,221,0.14)" strokeWidth="0.3" />
+        <circle cx="50" cy="50" r="45.5" fill="none" stroke="rgba(217,185,140,0.42)" strokeWidth="0.45" strokeDasharray="0.5 2.6" />
+        <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(236,231,221,0.09)" strokeWidth="0.25" />
+        {[0, 90, 180, 270].map((a) => {
+          const r = (a * Math.PI) / 180;
+          return (
+            <circle
+              key={a}
+              cx={(50 + 49 * Math.cos(r)).toFixed(2)}
+              cy={(50 + 49 * Math.sin(r)).toFixed(2)}
+              r="0.75"
+              fill="rgba(255,210,150,0.7)"
+            />
+          );
+        })}
+      </motion.svg>
+
+      {/* Radar sweep: a bright short arc scanning round faster. */}
+      <motion.svg
+        viewBox="0 0 100 100"
+        className="absolute inset-0 h-full w-full overflow-visible"
+        {...orbit(4.5, 1)}
+      >
+        <circle
+          cx="50"
+          cy="50"
+          r="45.5"
+          fill="none"
+          stroke="rgba(245,223,182,0.9)"
+          strokeWidth="0.8"
+          strokeLinecap="round"
+          strokeDasharray="9 1000"
+          style={{ filter: "drop-shadow(0 0 1.6px rgba(217,185,140,0.9))" }}
+        />
+      </motion.svg>
+
+      {/* Counter-orbiting glow dot. */}
+      <motion.div className="absolute inset-0" {...orbit(15, -1)}>
+        <span
+          className="absolute left-1/2 top-0 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent"
+          style={{ boxShadow: "0 0 8px 2px rgba(217,185,140,0.85)" }}
+        />
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -493,6 +596,8 @@ function CardVisual({
         style={{ rotateX: srx, rotateY: sry, transformPerspective: 1000 }}
         transition={{ type: "spring", stiffness: 240, damping: 24 }}
       >
+        <FocusRing hovered={hovered} reduce={!!reduceMotion} />
+
         {/* The card reads as a glass "observation viewport": a warm-lit bezel, a
             screen-inset screenshot, HUD corner brackets, a console readout, and a
             caption bar - one cohesive designed unit (not a bare framed image). */}
@@ -531,7 +636,11 @@ function CardVisual({
             style={imageStyle}
           >
             {project.images && project.images.length > 0 ? (
-              <CardImage images={project.images} alt={project.name} />
+              <CardImage
+                images={project.images}
+                alt={project.name}
+                fit={project.fit}
+              />
             ) : (
               <Placeholder tone={project.tone} name={project.name} />
             )}

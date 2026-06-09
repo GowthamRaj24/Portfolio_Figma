@@ -70,11 +70,11 @@ const ROLES: Role[] = [
 
 // "Worked with" logo strip. Drop logo files into /public/logos and set `logo`
 // (SVG preferred, or transparent PNG); until then each tile shows a monogram.
-const COMPANIES: { name: string; logo?: string }[] = [
-  { name: "Deltek" },
-  { name: "DiscoverrAI" },
-  { name: "Murti Labs" },
-  { name: "VYZA Solutions" },
+const COMPANIES: { name: string; logo?: string; zoom?: number }[] = [
+  { name: "Deltek", logo: "/companies/Deltek.png" },
+  { name: "DiscoverrAI", logo: "/companies/DiscoverrAI.jpg" },
+  { name: "Murti Labs", logo: "/companies/MurtiLabs1.png", zoom: 1.5 },
+  { name: "VYZA Solutions", logo: "/companies/VyzaSolutions.jpg", zoom: 1.7 },
 ];
 
 function initials(name: string) {
@@ -272,15 +272,22 @@ function LogoStrip() {
             whileHover={{ y: -4 }}
             transition={{ type: "spring", stiffness: 300, damping: 22 }}
             title={c.name}
-            className="group flex h-16 w-28 items-center justify-center rounded-xl border border-cream/10 bg-cream/[0.04] px-4 transition-colors duration-300 hover:border-cream/25 hover:bg-cream/[0.07] sm:w-32"
+            className={`group flex h-16 w-28 items-center justify-center overflow-hidden rounded-xl border transition-colors duration-300 sm:w-32 ${
+              c.logo
+                ? "border-white/10 bg-white px-3 shadow-[0_8px_24px_-14px_rgba(0,0,0,0.75)] hover:border-accent/50"
+                : "border-cream/10 bg-cream/[0.04] px-4 hover:border-cream/25 hover:bg-cream/[0.07]"
+            }`}
           >
             {c.logo ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={c.logo}
-                alt={c.name}
-                className="max-h-9 max-w-full object-contain opacity-85 transition duration-300 group-hover:opacity-100"
-              />
+              <div className="flex h-full w-full items-center justify-center transition-transform duration-300 group-hover:scale-[1.06]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={c.logo}
+                  alt={c.name}
+                  style={c.zoom ? { transform: `scale(${c.zoom})` } : undefined}
+                  className="max-h-12 max-w-full object-contain"
+                />
+              </div>
             ) : (
               <span className="font-display text-lg font-bold tracking-wide text-cream/45 transition-colors duration-300 group-hover:text-cream/75">
                 {initials(c.name)}

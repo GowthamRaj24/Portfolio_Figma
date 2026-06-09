@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
+  AnimatePresence,
   motion,
   useReducedMotion,
   useScroll,
@@ -31,6 +33,15 @@ type Achievement = {
   accent: string; // hex
   glow: string; // "r,g,b," prefix for rgba()
   core: [string, string]; // emblem core gradient [lit, shadow]
+  image?: string; // proof photograph shown in the mission-log viewport
+  caption?: string; // short line printed under the photo
+  credentials?: { issuer: string; name: string }[]; // shown instead of a photo
+  scorecard?: {
+    exam: string;
+    paper: string;
+    air: string;
+    stats: { label: string; value: string; sub?: string }[];
+  };
 };
 
 const ACHIEVEMENTS: Achievement[] = [
@@ -48,6 +59,8 @@ const ACHIEVEMENTS: Achievement[] = [
     accent: "#f5c451",
     glow: "245,196,81,",
     core: ["#ffe6a6", "#7a5418"],
+    image: "/Awards/InternalSIH.jpg",
+    caption: "Team Bloomers · ₹10,000 winning cheque",
   },
   {
     id: "02",
@@ -63,6 +76,8 @@ const ACHIEVEMENTS: Achievement[] = [
     accent: "#bcd0ea",
     glow: "188,208,234,",
     core: ["#e7f0fb", "#3f536f"],
+    image: "/Awards/Hackfest.jpg",
+    caption: "On stage · 48-hour build, certified runners-up",
   },
   {
     id: "03",
@@ -78,6 +93,15 @@ const ACHIEVEMENTS: Achievement[] = [
     accent: "#6fd8c6",
     glow: "111,216,198,",
     core: ["#c9f5ec", "#246b60"],
+    scorecard: {
+      exam: "GATE 2024",
+      paper: "Data Science & AI (DA)",
+      air: "4559",
+      stats: [
+        { label: "GATE Score", value: "404", sub: "/ 1000" },
+        { label: "Marks", value: "41", sub: "/ 100" },
+      ],
+    },
   },
   {
     id: "04",
@@ -93,6 +117,11 @@ const ACHIEVEMENTS: Achievement[] = [
     accent: "#b9a3f0",
     glow: "185,163,240,",
     core: ["#e9e1fb", "#463a78"],
+    credentials: [
+      { issuer: "Stanford Online · DeepLearning.AI", name: "Machine Learning Specialization" },
+      { issuer: "Amazon Web Services", name: "ML Foundations" },
+      { issuer: "GeeksforGeeks", name: "Advanced DSA" },
+    ],
   },
 ];
 
@@ -373,23 +402,432 @@ function Card({
   );
 }
 
-function GhostNumber({ a, align }: { a: Achievement; align: "left" | "right" }) {
+// HUD corner brackets that frame the photo (brighten on hover).
+function PhotoCorners({ glow }: { glow: string }) {
+  const base =
+    "pointer-events-none absolute z-20 h-4 w-4 opacity-55 transition-opacity duration-500 group-hover/photo:opacity-100";
+  const c = `rgba(${glow}0.85)`;
   return (
-    <motion.div
-      aria-hidden
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true, margin: "-20% 0px" }}
-      transition={{ duration: 1 }}
-      className={cn("select-none", align === "left" ? "text-left" : "text-right")}
-    >
-      <span
-        className="font-display text-[7rem] font-bold leading-none tracking-tighter lg:text-[10rem]"
-        style={{ color: `rgba(${a.glow}0.07)` }}
+    <>
+      <span className={cn(base, "left-2 top-2 rounded-tl-md border-l-2 border-t-2")} style={{ borderColor: c }} />
+      <span className={cn(base, "right-2 top-2 rounded-tr-md border-r-2 border-t-2")} style={{ borderColor: c }} />
+      <span className={cn(base, "bottom-2 left-2 rounded-bl-md border-b-2 border-l-2")} style={{ borderColor: c }} />
+      <span className={cn(base, "bottom-2 right-2 rounded-br-md border-b-2 border-r-2")} style={{ borderColor: c }} />
+    </>
+  );
+}
+
+/* The proof photograph, framed like a recovered mission-log dispatch. */
+function PhotoViewport({
+  a,
+  align,
+  reduce,
+  onOpen,
+}: {
+  a: Achievement;
+  align: "left" | "right";
+  reduce: boolean;
+  onOpen: (src: string, alt: string) => void;
+}) {
+  const right = align === "right";
+  const c = (o: number) => `rgba(${a.glow}${o})`;
+  if (!a.image) return null;
+
+  return (
+    <div className="relative mx-auto w-full max-w-[30rem]">
+      {/* Ghost rank id peeking behind the frame for editorial depth. */}
+      <motion.span
+        aria-hidden
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, margin: "-20% 0px" }}
+        transition={{ duration: 1 }}
+        className={cn(
+          "pointer-events-none absolute -top-12 z-0 select-none font-display text-[7rem] font-bold leading-none tracking-tighter sm:text-[9rem]",
+          right ? "-right-2" : "-left-2",
+        )}
+        style={{ color: c(0.08) }}
       >
         {a.id}
-      </span>
-    </motion.div>
+      </motion.span>
+
+      <motion.button
+        type="button"
+        onClick={() => onOpen(a.image as string, a.title)}
+        aria-label={`View ${a.title} — open full image`}
+        initial={{ opacity: 0, y: 30, rotate: reduce ? 0 : right ? 1.4 : -1.4 }}
+        whileInView={{ opacity: 1, y: 0, rotate: 0 }}
+        viewport={{ once: true, margin: "-15% 0px" }}
+        transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
+        whileHover={reduce ? undefined : { y: -8, scale: 1.015 }}
+        className="group/photo relative z-10 block w-full cursor-pointer overflow-hidden rounded-2xl border p-0 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-cream/60 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+        style={{
+          borderColor: c(0.38),
+          boxShadow: `0 38px 72px -42px rgba(0,0,0,0.92), inset 0 1px 0 rgba(255,255,255,0.07), 0 0 46px -18px ${c(0.55)}`,
+        }}
+      >
+        <div className="relative aspect-[3/2] w-full overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={a.image}
+            alt={a.title}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover object-center transition-transform duration-[1200ms] ease-out group-hover/photo:scale-[1.06]"
+            style={{ filter: "saturate(1.05) contrast(1.04)" }}
+          />
+
+          {/* Warm-into-cold tint so the photo sits inside the palette. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 mix-blend-soft-light"
+            style={{
+              background: `linear-gradient(180deg, ${c(0.18)}, transparent 32%, rgba(7,10,18,0.22))`,
+            }}
+          />
+          {/* Vignette. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{ boxShadow: "inset 0 0 90px rgba(0,0,0,0.55)" }}
+          />
+          {/* Transmission scanlines. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 opacity-[0.12] mix-blend-overlay"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(0deg, rgba(255,255,255,0.6) 0 1px, transparent 1px 3px)",
+            }}
+          />
+
+          {/* Top transmission bar. */}
+          <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between px-3.5 py-3">
+            <span className="flex items-center gap-1.5 rounded-full bg-black/40 px-2.5 py-1 backdrop-blur-sm">
+              <motion.span
+                className="h-1.5 w-1.5 rounded-full"
+                style={{ background: a.accent, boxShadow: `0 0 8px ${c(0.95)}` }}
+                animate={reduce ? undefined : { opacity: [1, 0.3, 1] }}
+                transition={reduce ? undefined : { duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <span className="font-sans text-[0.6rem] font-semibold uppercase tracking-[0.22em] text-cream/85">
+                Log {a.id}
+              </span>
+            </span>
+            <span className="rounded-full bg-black/40 px-2.5 py-1 font-sans text-[0.6rem] uppercase tracking-[0.2em] text-cream/70 backdrop-blur-sm">
+              Verified
+            </span>
+          </div>
+
+          {/* Bottom caption plate. */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent px-4 pb-3.5 pt-12">
+            <div className="flex items-end justify-between gap-3">
+              <span className="font-sans text-[0.82rem] font-medium leading-snug text-cream">
+                {a.caption}
+              </span>
+              <span className="flex shrink-0 items-center gap-1 font-sans text-[0.62rem] uppercase tracking-[0.18em] text-cream/75 transition-colors group-hover/photo:text-cream">
+                <svg
+                  width="11"
+                  height="11"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                </svg>
+                View
+              </span>
+            </div>
+          </div>
+
+          {/* Hover sheen sweep. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 -translate-x-[120%] opacity-0 transition-all duration-[1100ms] ease-out group-hover/photo:translate-x-[120%] group-hover/photo:opacity-100"
+            style={{
+              background:
+                "linear-gradient(110deg, transparent 40%, rgba(255,255,255,0.12) 50%, transparent 60%)",
+            }}
+          />
+        </div>
+
+        <PhotoCorners glow={a.glow} />
+      </motion.button>
+    </div>
+  );
+}
+
+/* Certifications have no single photo — present them as a stacked credential
+   ledger that mirrors the weight of a photo on the opposite side. */
+function CredentialStack({ a, reduce }: { a: Achievement; reduce: boolean }) {
+  const c = (o: number) => `rgba(${a.glow}${o})`;
+  const certs = a.credentials ?? [];
+  return (
+    <div className="relative mx-auto w-full max-w-[30rem]">
+      <motion.span
+        aria-hidden
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, margin: "-20% 0px" }}
+        transition={{ duration: 1 }}
+        className="pointer-events-none absolute -top-12 -left-2 z-0 select-none font-display text-[7rem] font-bold leading-none tracking-tighter sm:text-[9rem]"
+        style={{ color: c(0.08) }}
+      >
+        {a.id}
+      </motion.span>
+
+      <motion.div
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, margin: "-15% 0px" }}
+        variants={{ hidden: {}, show: { transition: { staggerChildren: 0.12, delayChildren: 0.1 } } }}
+        className="relative z-10 space-y-3.5"
+      >
+        {certs.map((cert) => (
+          <motion.div
+            key={cert.issuer}
+            variants={{
+              hidden: { opacity: 0, x: 26, rotate: reduce ? 0 : -1.4 },
+              show: { opacity: 1, x: 0, rotate: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
+            }}
+            whileHover={reduce ? undefined : { x: 7 }}
+            className="group/cert relative flex items-center gap-4 overflow-hidden rounded-2xl border p-4 backdrop-blur-md"
+            style={{
+              borderColor: c(0.28),
+              background:
+                "linear-gradient(150deg, rgba(255,255,255,0.06), rgba(255,255,255,0.012) 70%)",
+              boxShadow: "0 22px 46px -34px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.05)",
+            }}
+          >
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-y-0 left-0 w-0.5"
+              style={{ background: c(0.6) }}
+            />
+            {/* Wax-seal medallion. */}
+            <div
+              className="relative grid h-12 w-12 shrink-0 place-items-center rounded-full"
+              style={{
+                background: `radial-gradient(circle at 34% 28%, ${a.core[0]}, ${a.core[1]})`,
+                boxShadow: `inset 0 -4px 10px rgba(0,0,0,0.4), inset 0 3px 7px rgba(255,255,255,0.25), 0 0 18px ${c(0.45)}`,
+              }}
+            >
+              <span className="font-display text-base font-bold" style={{ color: "#1a1330" }}>
+                ★
+              </span>
+            </div>
+            <div className="min-w-0">
+              <p
+                className="truncate font-sans text-[0.68rem] uppercase tracking-[0.18em]"
+                style={{ color: a.accent }}
+              >
+                {cert.issuer}
+              </p>
+              <p className="mt-0.5 font-display text-base font-semibold leading-tight text-cream">
+                {cert.name}
+              </p>
+            </div>
+          </motion.div>
+        ))}
+      </motion.div>
+    </div>
+  );
+}
+
+/* A designed result panel for GATE — the proof as data, no scorecard PII. */
+function ScoreCard({
+  a,
+  align,
+  reduce,
+}: {
+  a: Achievement;
+  align: "left" | "right";
+  reduce: boolean;
+}) {
+  const right = align === "right";
+  const c = (o: number) => `rgba(${a.glow}${o})`;
+  const sc = a.scorecard;
+  if (!sc) return null;
+
+  return (
+    <div className="relative mx-auto w-full max-w-[30rem]">
+      <motion.span
+        aria-hidden
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, margin: "-20% 0px" }}
+        transition={{ duration: 1 }}
+        className={cn(
+          "pointer-events-none absolute -top-12 z-0 select-none font-display text-[7rem] font-bold leading-none tracking-tighter sm:text-[9rem]",
+          right ? "-right-2" : "-left-2",
+        )}
+        style={{ color: c(0.08) }}
+      >
+        {a.id}
+      </motion.span>
+
+      <motion.div
+        initial={{ opacity: 0, y: 30, rotate: reduce ? 0 : right ? 1.4 : -1.4 }}
+        whileInView={{ opacity: 1, y: 0, rotate: 0 }}
+        viewport={{ once: true, margin: "-15% 0px" }}
+        transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
+        whileHover={reduce ? undefined : { y: -8 }}
+        className="group/photo relative z-10 overflow-hidden rounded-2xl border p-5 sm:p-6"
+        style={{
+          borderColor: c(0.38),
+          background:
+            "linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.012) 70%)",
+          boxShadow: `0 38px 72px -42px rgba(0,0,0,0.92), inset 0 1px 0 rgba(255,255,255,0.07), 0 0 46px -18px ${c(0.55)}`,
+        }}
+      >
+        {/* Faint blueprint grid. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.05]"
+          style={{
+            backgroundImage: `linear-gradient(${c(1)} 1px, transparent 1px), linear-gradient(90deg, ${c(1)} 1px, transparent 1px)`,
+            backgroundSize: "22px 22px",
+          }}
+        />
+        {/* Accent top edge. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-px"
+          style={{ background: `linear-gradient(90deg, transparent, ${c(0.75)}, transparent)` }}
+        />
+
+        {/* Header. */}
+        <div className="relative flex items-center justify-between">
+          <span className="flex items-center gap-1.5">
+            <motion.span
+              className="h-1.5 w-1.5 rounded-full"
+              style={{ background: a.accent, boxShadow: `0 0 8px ${c(0.95)}` }}
+              animate={reduce ? undefined : { opacity: [1, 0.3, 1] }}
+              transition={reduce ? undefined : { duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <span className="font-sans text-[0.6rem] font-semibold uppercase tracking-[0.22em] text-cream/85">
+              {sc.exam} · Scorecard
+            </span>
+          </span>
+          <span
+            className="rounded-full border px-2.5 py-0.5 font-sans text-[0.56rem] font-semibold uppercase tracking-[0.2em]"
+            style={{ borderColor: c(0.45), color: a.accent, background: c(0.08) }}
+          >
+            Qualified
+          </span>
+        </div>
+
+        {/* Hero metric: All India Rank. */}
+        <div className="relative mt-5">
+          <p className="font-sans text-[0.6rem] uppercase tracking-[0.22em] text-cream/55">
+            All India Rank
+          </p>
+          <p className="mt-0.5 flex items-baseline gap-2">
+            <span className="font-display text-[clamp(2.6rem,7vw,3.6rem)] font-bold leading-none text-cream">
+              {sc.air}
+            </span>
+            <span
+              className="font-display text-lg font-semibold"
+              style={{ color: a.accent }}
+            >
+              AIR
+            </span>
+          </p>
+        </div>
+
+        {/* Stat tiles. */}
+        <div className="relative mt-5 grid grid-cols-2 gap-3">
+          {sc.stats.map((s) => (
+            <div
+              key={s.label}
+              className="rounded-xl border border-cream/10 bg-black/20 px-3.5 py-3"
+            >
+              <p className="font-sans text-[0.56rem] uppercase tracking-[0.16em] text-cream/50">
+                {s.label}
+              </p>
+              <p className="mt-1 font-display text-xl font-bold text-cream">
+                {s.value}
+                {s.sub && (
+                  <span className="ml-1 font-sans text-xs font-normal text-cream/45">
+                    {s.sub}
+                  </span>
+                )}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Paper footer. */}
+        <div className="relative mt-4 flex items-center gap-2 border-t border-cream/10 pt-3">
+          <span className="font-sans text-[0.6rem] uppercase tracking-[0.18em] text-cream/45">
+            Paper
+          </span>
+          <span className="font-sans text-sm text-cream/80">{sc.paper}</span>
+        </div>
+
+        <PhotoCorners glow={a.glow} />
+      </motion.div>
+    </div>
+  );
+}
+
+/* Full-screen lightbox so the proof images (esp. the scorecard) are readable. */
+function Lightbox({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
+
+  return createPortal(
+    <motion.div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-10"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={alt}
+    >
+      <div className="absolute inset-0 bg-[#05060c]/85 backdrop-blur-md" />
+      <motion.div
+        className="relative z-10"
+        initial={{ scale: 0.92, y: 16 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        transition={{ type: "spring", stiffness: 240, damping: 26 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt={alt}
+          className="max-h-[86vh] max-w-[92vw] rounded-xl border border-cream/15 object-contain shadow-[0_40px_120px_-30px_rgba(0,0,0,0.92)]"
+        />
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute -right-3 -top-3 grid h-9 w-9 place-items-center rounded-full border border-cream/25 bg-[#0b0e16] text-lg text-cream/80 transition hover:scale-105 hover:text-cream"
+        >
+          ✕
+        </button>
+        <p className="mt-3 text-center font-sans text-sm text-cream/70">{alt}</p>
+      </motion.div>
+    </motion.div>,
+    document.body,
   );
 }
 
@@ -401,35 +839,47 @@ function AchievementRow({
   a,
   index,
   reduce,
+  onOpenImage,
 }: {
   a: Achievement;
   index: number;
   reduce: boolean;
+  onOpenImage: (src: string, alt: string) => void;
 }) {
   // Even rows: card on the LEFT; odd rows: card on the RIGHT.
+  // Mobile stack order (via order-*): emblem → visual → card.
   const cardLeft = index % 2 === 0;
   return (
     <div
       className={cn(
-        "relative flex flex-col items-center gap-7 sm:flex-row sm:gap-12",
+        "relative flex flex-col items-center gap-8 sm:flex-row sm:gap-12",
         !cardLeft && "sm:flex-row-reverse",
       )}
     >
       {/* Card (one flex side). */}
-      <div className="w-full sm:flex-1">
+      <div className="order-3 w-full sm:order-none sm:flex-1">
         <Card a={a} align={cardLeft ? "right" : "left"} />
       </div>
 
       {/* Emblem on the spine (centre). First on mobile for impact. */}
-      <div className="order-first sm:order-none">
+      <div className="order-1 sm:order-none">
         <Emblem a={a} reduce={reduce} />
       </div>
 
-      {/* Ghost rank number on the opposite side (desktop only). */}
-      <div className="hidden sm:flex sm:flex-1 sm:items-center">
-        <div className={cn("w-full", cardLeft ? "sm:text-left" : "sm:text-right")}>
-          <GhostNumber a={a} align={cardLeft ? "left" : "right"} />
-        </div>
+      {/* Proof visual on the opposite side: photograph or credential ledger. */}
+      <div className="order-2 w-full sm:order-none sm:flex sm:flex-1 sm:items-center">
+        {a.image ? (
+          <PhotoViewport
+            a={a}
+            align={cardLeft ? "right" : "left"}
+            reduce={reduce}
+            onOpen={onOpenImage}
+          />
+        ) : a.scorecard ? (
+          <ScoreCard a={a} align={cardLeft ? "right" : "left"} reduce={reduce} />
+        ) : (
+          <CredentialStack a={a} reduce={reduce} />
+        )}
       </div>
     </div>
   );
@@ -526,6 +976,7 @@ function Header() {
 export function Achievements() {
   const reduceMotion = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
+  const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
 
   // The flight path "draws" itself down the constellation as you scroll.
   const { scrollYProgress } = useScroll({
@@ -642,11 +1093,22 @@ export function Achievements() {
                 a={a}
                 index={i}
                 reduce={!!reduceMotion}
+                onOpenImage={(src, alt) => setLightbox({ src, alt })}
               />
             ))}
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {lightbox && (
+          <Lightbox
+            src={lightbox.src}
+            alt={lightbox.alt}
+            onClose={() => setLightbox(null)}
+          />
+        )}
+      </AnimatePresence>
     </section>
   );
 }

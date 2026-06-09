@@ -29,6 +29,9 @@ const ABOUT_GEOS: Geo[] = [
   { top: 58, left: 52, size: 3.5, type: "orbit", dur: 44, dir: -1 },
 ];
 
+// Focus areas, shown as compact chips instead of a second prose paragraph.
+const FOCUS = ["Backend", "Real-Time Systems", "AI / RAG", "Full-Stack", "Cloud"];
+
 /* ------------------------------------------------------------------ */
 /* Keyword - accent-coloured term inside a line.                       */
 /* ------------------------------------------------------------------ */
@@ -152,26 +155,36 @@ export function About({
             <div className="mt-6 h-px w-full bg-line" />
           </motion.div>
 
-          {/* ---------- The kinetic bio monologue (left-aligned) ---------- */}
-          <div className="mt-14">
+          {/* ---------- A tight statement + focus chips (not a wall of text) ---------- */}
+          <div className="mt-12">
             <p className="font-display text-[clamp(1.9rem,5vw,4rem)] font-bold leading-[1.07] tracking-tight text-cream">
               <ReadingLine>
                 I&apos;m a <K>Software Engineer</K>
               </ReadingLine>
-              <ReadingLine>passionate about building intelligent,</ReadingLine>
-              <ReadingLine>scalable, and user-focused solutions.</ReadingLine>
+              <ReadingLine>building intelligent, scalable,</ReadingLine>
+              <ReadingLine>user-focused systems.</ReadingLine>
             </p>
 
-            <p className="mt-12 max-w-3xl font-sans text-[clamp(1.1rem,2.4vw,1.85rem)] font-light leading-snug text-cream/85">
-              <ReadingLine>
-                With a background in <K>backend</K> &amp; <K>real-time systems</K>,
-              </ReadingLine>
-              <ReadingLine>
-                <K>AI / RAG</K>, and modern <K>full-stack web</K>,
-              </ReadingLine>
-              <ReadingLine>I enjoy transforming complex challenges</ReadingLine>
-              <ReadingLine>into impactful products.</ReadingLine>
+            <p className="mt-8 max-w-2xl font-sans text-[clamp(1.05rem,2vw,1.45rem)] font-light leading-snug text-cream/75">
+              <ReadingLine>I turn complex problems</ReadingLine>
+              <ReadingLine>into products people actually use.</ReadingLine>
             </p>
+
+            {/* Focus areas at a glance. */}
+            <motion.div
+              {...riseIn}
+              transition={{ duration: 0.7, ease: "easeOut" }}
+              className="mt-9 flex flex-wrap gap-2.5"
+            >
+              {FOCUS.map((f) => (
+                <span
+                  key={f}
+                  className="rounded-full border border-cream/15 bg-cream/[0.04] px-4 py-1.5 font-sans text-xs uppercase tracking-[0.16em] text-cream/65"
+                >
+                  {f}
+                </span>
+              ))}
+            </motion.div>
           </div>
 
           {/* ---------- CTA ---------- */}
