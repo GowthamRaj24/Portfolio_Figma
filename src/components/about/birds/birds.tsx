@@ -114,7 +114,7 @@ export function Birds({ journeyRef, aboutRef }: BirdsProps) {
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 z-20"
+      className="birds-layer pointer-events-none fixed inset-0 z-20"
     >
       {mounted && (
         <BirdsScene

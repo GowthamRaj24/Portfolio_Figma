@@ -227,10 +227,14 @@ export function ProjectModal({
           transition={{ duration: 0.3 }}
           onClick={onClose}
         >
-          {/* Backdrop */}
+          {/* Backdrop. NOTE: deliberately NO backdrop-blur — the birds are a
+              fixed, full-viewport WebGL canvas behind this, and backdrop-filter
+              over a WebGL layer makes Chrome paint a black rectangle (the
+              "black glitch"). A near-opaque solid scrim dims the scene cleanly
+              and is glitch-free + far cheaper to composite. */}
           <div
             aria-hidden
-            className="fixed inset-0 bg-[#04030a]/80 backdrop-blur-md"
+            className="fixed inset-0 bg-[#04030a]/92"
           />
 
           {/* Panel */}

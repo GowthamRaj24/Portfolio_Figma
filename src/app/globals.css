@@ -99,6 +99,16 @@ body.modal-open .sky-meteor {
   animation-play-state: paused !important;
 }
 
+/* The flock is a FIXED, full-viewport WebGL canvas. Hide it entirely while a
+   modal is open: a guard against the Chrome "backdrop/WebGL paints black" bug
+   and one less layer to composite under the modal. Fades back on close. */
+.birds-layer {
+  transition: opacity 0.25s ease;
+}
+body.modal-open .birds-layer {
+  opacity: 0;
+}
+
 ::selection {
   background: color-mix(in srgb, var(--accent) 28%, transparent);
 }

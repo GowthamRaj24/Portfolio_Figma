@@ -810,7 +810,9 @@ function Lightbox({ src, alt, onClose }: { src: string; alt: string; onClose: ()
       aria-modal="true"
       aria-label={alt}
     >
-      <div className="absolute inset-0 bg-[#05060c]/85 backdrop-blur-md" />
+      {/* Solid scrim (no backdrop-blur): the fixed WebGL birds canvas sits
+          behind this, and a backdrop-filter over WebGL paints black in Chrome. */}
+      <div className="absolute inset-0 bg-[#05060c]/93" />
       <motion.div
         className="relative z-10"
         initial={{ scale: 0.92, y: 16 }}
