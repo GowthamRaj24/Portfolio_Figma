@@ -197,7 +197,7 @@ export function About({
               Let&apos;s work together
             </PillButton>
             <a
-              href="/resume.pdf"
+              href="/Gowtham_Raju_Manda_Resume.pdf"
               target="_blank"
               rel="noreferrer"
               className="group inline-flex items-center gap-2 font-sans text-sm uppercase tracking-[0.2em] text-cream/70 transition-colors duration-300 hover:text-accent"

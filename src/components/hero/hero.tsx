@@ -14,7 +14,7 @@ import { HeroVideo } from "./hero-video";
 import { Headline } from "./headline";
 import { useReveal } from "@/components/loader/load-context";
 
-const RESUME_URL = "/resume.pdf";
+const RESUME_URL = "/Gowtham_Raju_Manda_Resume.pdf";
 const CONTACT_EMAIL = "mgowthamraj9491@gmail.com";
 // Pre-filled email so "Contact" opens the visitor's mail client (Outlook, etc.)
 // addressed to me, with a ready-to-edit subject + greeting.

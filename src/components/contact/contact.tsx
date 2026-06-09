@@ -21,7 +21,7 @@ import { PillButton } from "@/components/ui/pill-button";
 
 const EMAIL = "mgowthamraj9491@gmail.com";
 const PHONE = "+91 9491226619";
-const RESUME = "/resume.pdf";
+const RESUME = "/Gowtham_Raju_Manda_Resume.pdf";
 
 // Same pre-filled subject + greeting as the hero "Contact" button, so emailing
 // from anywhere on the site opens a ready-to-edit message (not a blank compose).
